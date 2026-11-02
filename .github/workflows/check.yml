@@ -59,7 +59,7 @@ jobs:
       - name: Live detection test on a currently listed IMAX show
         if: github.event_name == 'push' && contains(github.event.head_commit.message, '[live-detection-test]')
         env:
-          BOOKING_URL: https://in.bookmyshow.com/cinemas/chennai/pvr-palazzo-the-nexus-vijaya-mall/buytickets/PVPZ/20261102
+          BOOKING_URL: https://www.district.in/movies/pvr-palazzo-the-nexus-vijaya-mall-chennai-CD1022274?fromdate=2026-11-02
           TARGET_DATE: '2026-11-02'
           THEATRE_KEYWORDS: 'Nexus Vijaya Mall,PVR Palazzo'
           MOVIE_KEYWORDS: 'Jailer 2'
