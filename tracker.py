@@ -19,6 +19,11 @@ from telegram import send_telegram
 STATE_FILE = Path("tracker_state.json")
 
 
+class AccessBlockedError(RuntimeError):
+    """Raised when the booking provider serves an anti-bot/access-denied page."""
+
+
+
 def date_variants(iso_date: str) -> list[str]:
     dt = datetime.strptime(iso_date, "%Y-%m-%d")
     return [
@@ -63,6 +68,11 @@ def inspect_page(page, booking_url: str) -> tuple[bool, str]:
     body = page.locator("body").inner_text(timeout=10000)
     page_text = f"{title}\n{body}"
     lower = page_text.lower()
+    if contains_any(lower, ("attention required", "access denied", "cloudflare", "verify you are human", "checking your browser")):
+        raise AccessBlockedError(
+            "The booking provider blocked this hosted browser with an access challenge. "
+            "No booking result can be trusted from this check."
+        )
 
     movie_found = contains_any(lower, MOVIE_KEYWORDS)
     date_found = contains_any(lower, date_variants(TARGET_DATE))
@@ -150,6 +160,21 @@ def main() -> int:
             detected, diagnostics = inspect_page(page, booking_url)
             final_url = page.url
             browser.close()
+    except AccessBlockedError as exc:
+        print(f"CHECK BLOCKED: {exc}")
+        if state.get("status") != "blocked":
+            try:
+                send_telegram(
+                    "⚠️ DOOMSDAY IMAX TRACKER NEEDS ATTENTION\\n\\n"
+                    "BookMyShow blocked the automated check, so booking availability "
+                    "could not be verified. No assumption is being made that bookings "
+                    "are closed. The monitor needs an accessible network/browser."
+                )
+            except Exception as notify_exc:
+                print(f"Could not send blocked-status notification: {notify_exc}")
+        state.update({"status": "blocked", "last_url": booking_url, "last_checked": now})
+        save_state(state)
+        return 2
     except Exception as exc:
         print(f"Check failed: {type(exc).__name__}: {exc}")
         return 2
