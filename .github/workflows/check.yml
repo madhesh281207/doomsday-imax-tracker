@@ -56,6 +56,29 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python telegram.py --test
 
+      - name: Live detection test on a currently listed IMAX show
+        if: github.event_name == 'push' && contains(github.event.head_commit.message, '[live-detection-test]')
+        env:
+          BOOKING_URL: https://in.bookmyshow.com/cinemas/chennai/pvr-palazzo-the-nexus-vijaya-mall/buytickets/PVPZ/20261102
+          TARGET_DATE: '2026-11-02'
+          THEATRE_KEYWORDS: 'Nexus Vijaya Mall,PVR Palazzo'
+          MOVIE_KEYWORDS: 'Jailer 2'
+        run: |
+          python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          from tracker import inspect_page
+          import os
+          with sync_playwright() as p:
+              browser = p.chromium.launch(headless=True)
+              page = browser.new_page()
+              detected, diagnostics = inspect_page(page, os.environ['BOOKING_URL'])
+              browser.close()
+          print(diagnostics)
+          print(f'LIVE TEST RESULT: {"PASS - matching live IMAX show detected" if detected else "FAIL - live show not detected by current selectors"}')
+          if not detected:
+              raise SystemExit(1)
+          PY
+
       - name: Run IMAX-only booking check
         env:
           BOOKING_URL: ${{ secrets.BOOKING_URL }}
