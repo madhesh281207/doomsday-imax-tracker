@@ -61,7 +61,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TARGET_DATE: ${{ vars.TARGET_DATE || '2026-12-17' }}
           THEATRE_KEYWORDS: ${{ vars.THEATRE_KEYWORDS || 'Nexus Vijaya Mall,PVR Palazzo' }}
-          MOVIE_KEYWORDS: ${{ vars.MOVIE_KEYWORDS || 'Avengers: Doomsday,Avengers Doomsday' }}
+          MOVIE_KEYWORDS: "${{ vars.MOVIE_KEYWORDS || 'Avengers: Doomsday,Avengers Doomsday' }}"
         run: python tracker.py
 
       - name: Save tracker state
