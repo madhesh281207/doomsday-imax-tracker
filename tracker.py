@@ -165,7 +165,7 @@ def main() -> int:
         if state.get("status") != "blocked":
             try:
                 send_telegram(
-                    "⚠️ DOOMSDAY IMAX TRACKER NEEDS ATTENTION\\n\\n"
+                    "⚠️ DOOMSDAY IMAX TRACKER NEEDS ATTENTION\n\n"
                     "BookMyShow blocked the automated check, so booking availability "
                     "could not be verified. No assumption is being made that bookings "
                     "are closed. The monitor needs an accessible network/browser."
