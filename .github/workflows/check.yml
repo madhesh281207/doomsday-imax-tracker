@@ -2,6 +2,8 @@ name: Doomsday IMAX booking check
 # Trigger a fresh validation run after the YAML fix.
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       send_test_notification:
