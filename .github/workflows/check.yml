@@ -50,7 +50,7 @@ jobs:
             doomsday-tracker-state-
 
       - name: Send Telegram test notification
-        if: github.event_name == 'workflow_dispatch' && inputs.send_test_notification
+        if: (github.event_name == 'workflow_dispatch' && inputs.send_test_notification) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[telegram-test]'))
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
