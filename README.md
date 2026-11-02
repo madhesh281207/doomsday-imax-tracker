@@ -4,7 +4,7 @@ A free, GitHub Actions-based starter project that checks a configured cinema boo
 **Avengers: Doomsday**, **Nexus Vijaya Mall IMAX, Chennai**, and the target date **17 December 2026**.
 It sends a Telegram alert when it detects a likely bookable show.
 
-> Important: cinema sites change their layouts and may block automated browsing. This project uses
+> Important: cinema sites change their layouts and may block automated browsing. The checker uses Playwright Firefox because BookMyShow challenged the Chromium browser on the hosted runner. This project uses
 > conservative page-text/link checks, not an official cinema API. A human should verify the booking
 > page before buying. The first setup requires the exact booking/listing URL you want to monitor.
 > Do not assume a movie listing means tickets are on sale.
