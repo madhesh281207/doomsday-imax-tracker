@@ -12,7 +12,6 @@ on:
         type: boolean
         default: false
   schedule:
-    # GitHub Actions scheduling is best-effort, not an exact alarm.
     - cron: "*/5 * * * *"
 
 permissions:
@@ -24,7 +23,7 @@ concurrency:
 
 jobs:
   check-bookings:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - name: Check out repository
