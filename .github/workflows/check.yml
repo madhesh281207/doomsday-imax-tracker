@@ -43,25 +43,25 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: tracker_state.json
-          key: doomsday-tracker-state-\${{ github.run_id }}
+          key: doomsday-tracker-state-${{ github.run_id }}
           restore-keys: |
             doomsday-tracker-state-
 
       - name: Send Telegram test notification
         if: github.event_name == 'workflow_dispatch' && inputs.send_test_notification
         env:
-          TELEGRAM_BOT_TOKEN: \${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: \${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python telegram.py --test
 
       - name: Run IMAX-only booking check
         env:
-          BOOKING_URL: \${{ secrets.BOOKING_URL }}
-          TELEGRAM_BOT_TOKEN: \${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: \${{ secrets.TELEGRAM_CHAT_ID }}
-          TARGET_DATE: \${{ vars.TARGET_DATE || '2026-12-17' }}
-          THEATRE_KEYWORDS: \${{ vars.THEATRE_KEYWORDS || 'Nexus Vijaya Mall,PVR Palazzo' }}
-          MOVIE_KEYWORDS: \${{ vars.MOVIE_KEYWORDS || 'Avengers: Doomsday,Avengers Doomsday' }}
+          BOOKING_URL: ${{ secrets.BOOKING_URL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TARGET_DATE: ${{ vars.TARGET_DATE || '2026-12-17' }}
+          THEATRE_KEYWORDS: ${{ vars.THEATRE_KEYWORDS || 'Nexus Vijaya Mall,PVR Palazzo' }}
+          MOVIE_KEYWORDS: ${{ vars.MOVIE_KEYWORDS || 'Avengers: Doomsday,Avengers Doomsday' }}
         run: python tracker.py
 
       - name: Save tracker state
@@ -69,4 +69,4 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: tracker_state.json
-          key: doomsday-tracker-state-\${{ github.run_id }}
+          key: doomsday-tracker-state-${{ github.run_id }}
