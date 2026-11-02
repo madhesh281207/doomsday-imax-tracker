@@ -2,6 +2,12 @@ name: Doomsday IMAX booking check
 
 on:
   workflow_dispatch:
+    inputs:
+      send_test_notification:
+        description: "Send a Telegram test message before checking bookings"
+        required: false
+        type: boolean
+        default: false
   schedule:
     # GitHub Actions scheduling is best-effort, not an exact alarm.
     - cron: "*/5 * * * *"
@@ -11,12 +17,12 @@ permissions:
 
 concurrency:
   group: doomsday-imax-check
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   check-bookings:
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 10
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -37,18 +43,25 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: tracker_state.json
-          key: doomsday-tracker-state-${{ github.run_id }}
+          key: doomsday-tracker-state-\${{ github.run_id }}
           restore-keys: |
             doomsday-tracker-state-
 
-      - name: Run booking check
+      - name: Send Telegram test notification
+        if: github.event_name == 'workflow_dispatch' && inputs.send_test_notification
         env:
-          BOOKING_URL: ${{ secrets.BOOKING_URL }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          TARGET_DATE: ${{ vars.TARGET_DATE || '2026-12-17' }}
-          THEATRE_KEYWORDS: ${{ vars.THEATRE_KEYWORDS || 'Nexus Vijaya Mall,IMAX' }}
-          MOVIE_KEYWORDS: ${{ vars.MOVIE_KEYWORDS || 'Avengers: Doomsday,Avengers Doomsday' }}
+          TELEGRAM_BOT_TOKEN: \${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: \${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python telegram.py --test
+
+      - name: Run IMAX-only booking check
+        env:
+          BOOKING_URL: \${{ secrets.BOOKING_URL }}
+          TELEGRAM_BOT_TOKEN: \${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: \${{ secrets.TELEGRAM_CHAT_ID }}
+          TARGET_DATE: \${{ vars.TARGET_DATE || '2026-12-17' }}
+          THEATRE_KEYWORDS: \${{ vars.THEATRE_KEYWORDS || 'Nexus Vijaya Mall,PVR Palazzo' }}
+          MOVIE_KEYWORDS: \${{ vars.MOVIE_KEYWORDS || 'Avengers: Doomsday,Avengers Doomsday' }}
         run: python tracker.py
 
       - name: Save tracker state
@@ -56,4 +69,4 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: tracker_state.json
-          key: doomsday-tracker-state-${{ github.run_id }}
+          key: doomsday-tracker-state-\${{ github.run_id }}
