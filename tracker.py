@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
 from config import (
-    BOOKING_TERMS, HEADLESS, MOVIE_KEYWORDS, NON_BOOKING_TERMS,
+    BOOKING_TERMS, FORMAT_KEYWORDS, HEADLESS, MOVIE_KEYWORDS, NON_BOOKING_TERMS,
     PAGE_TIMEOUT_MS, TARGET_DATE, THEATRE_KEYWORDS,
 )
 from telegram import send_telegram
@@ -67,6 +67,7 @@ def inspect_page(page, booking_url: str) -> tuple[bool, str]:
     movie_found = contains_any(lower, MOVIE_KEYWORDS)
     date_found = contains_any(lower, date_variants(TARGET_DATE))
     theatre_found = contains_any(lower, THEATRE_KEYWORDS)
+    imax_found = contains_any(lower, FORMAT_KEYWORDS)
 
     # Look for actionable booking links/buttons, retaining their nearby text
     # so a generic "Book" button elsewhere does not automatically count.
@@ -100,18 +101,21 @@ def inspect_page(page, booking_url: str) -> tuple[bool, str]:
         except Exception:
             continue
 
-    # Conservative decision: all target identifiers must be present, plus
-    # an enabled booking action in a context that mentions the movie or date.
-    confirmed_action = any(
-        (contains_any(item["context"], MOVIE_KEYWORDS) or
-         contains_any(item["context"], date_variants(TARGET_DATE)))
+    # A candidate action must belong to a show card that contains the
+    # requested movie, target date AND IMAX. This avoids matching a different
+    # IMAX film or a regular-screen Doomsday listing elsewhere on the page.
+    confirmed_actions = [
+        item for item in action_evidence
+        if contains_any(item["context"], MOVIE_KEYWORDS)
+        and contains_any(item["context"], date_variants(TARGET_DATE))
+        and contains_any(item["context"], FORMAT_KEYWORDS)
         and not contains_any(item["context"], NON_BOOKING_TERMS)
-        for item in action_evidence
+    ]
+    confirmed_action = bool(confirmed_actions)
+    detected = (
+        movie_found and date_found and theatre_found and imax_found
+        and confirmed_action
     )
-
-    # Some pages expose a bookable show as a link but no button text.
-    # Keep the same strict context requirement.
-    detected = movie_found and date_found and theatre_found and confirmed_action
 
     diagnostics = (
         f"Page title: {title!r}\n"
@@ -168,7 +172,7 @@ def main() -> int:
         )
         send_telegram(message)
     elif not detected:
-        print("No confirmed bookable show detected. No alert sent.")
+        print("No matching bookable IMAX show detected. No alert sent.")
 
     state.update({
         "status": current,
