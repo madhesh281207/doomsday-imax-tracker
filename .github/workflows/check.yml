@@ -1,4 +1,5 @@
 name: Doomsday IMAX booking check
+# Trigger a fresh validation run after the YAML fix.
 
 on:
   workflow_dispatch:
