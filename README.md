@@ -13,7 +13,7 @@ It sends a Telegram alert when it detects a likely bookable show.
 
 - `tracker.py` — Playwright page checker and change detection
 - `config.py` — target movie, theatre, date and detection terms
-- `telegram.py` — Telegram message sender
+- `telegram.py` — Telegram message sender and manual test command
 - `.github/workflows/check.yml` — scheduled GitHub Actions run every five minutes
 - `requirements.txt` — Python dependencies
 - `.env.example` — local configuration template
@@ -60,7 +60,7 @@ Optional secrets:
 1. Create a GitHub repository named `doomsday-imax-tracker`.
 2. Upload all files and folders from this ZIP into the repository root.
 3. Go to **Settings → Secrets and variables → Actions** and add the secrets above.
-4. Go to **Actions**, enable workflows if GitHub asks, then run **Doomsday IMAX booking check** once using **Run workflow**.
+4. Go to **Actions**, enable workflows if GitHub asks, then run **Doomsday IMAX booking check** using **Run workflow**. For the first test, set **Send a Telegram test message before checking bookings** to `true`. You should receive a Telegram setup-test message; it does not mean bookings are open.
 
 The workflow is scheduled with `*/5 * * * *` (every five minutes). GitHub's scheduler is best-effort: runs can be delayed, and it is not a guaranteed real-time alarm. GitHub Actions usage is free within the account's included limits.
 
@@ -89,11 +89,7 @@ The script reads environment variables directly. For local runs, export them in 
 
 ## Detection behaviour and limitations
 
-The checker looks for:
-- the configured movie title,
-- the target date in common written/numeric formats,
-- theatre/IMAX keywords,
-- a nearby booking-related link or button such as **Book**, **Book tickets**, **Select seats**, or **Buy tickets**.
+The checker looks for the configured movie title, target date, cinema identity and IMAX format. A booking action must be found in the same nearby show-card context as the movie, date and IMAX label. Regular-screen shows and other IMAX movies must not trigger an alert.
 
 It tries to avoid treating a plain movie announcement as a booking. However, page structures vary. A site may render showtimes only after choosing a date/location, use inaccessible scripts, or block automated browsers. If the checker cannot confidently detect a bookable show, it reports **NOT CONFIRMED** rather than claiming bookings are open.
 
